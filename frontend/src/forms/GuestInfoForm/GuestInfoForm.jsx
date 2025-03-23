@@ -2,7 +2,8 @@ import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
-import useNavigate, { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+
 const GuestInfoForm = ({ hotelId, pricePerNight }) => {
   const navigate = useNavigate();
   const location = useLocation();
