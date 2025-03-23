@@ -1,7 +1,7 @@
 import { useSearchContext } from "../context/SearchContext";
 import { useQuery } from "@tanstack/react-query";
-import * as apiClient from "../api-client";
 import { useState } from "react";
+import * as apiClient from "../api-client";
 import SearchResultsCard from "../components/SearchResultsCard";
 import Pagination from "../components/Pagination";
 import StarRatingFilter from "../components/StarRatingFilter";
@@ -19,11 +19,11 @@ const Search = () => {
   const [sortOption, setSortOption] = useState("");
 
   const searchParams = {
-    destination: search.destination || "", // Ensure it's not undefined
-    checkIn: search.checkIn ? search.checkIn.toISOString() : null, // Avoid errors
-    checkOut: search.checkOut ? search.checkOut.toISOString() : null, // Avoid errors
-    adultCount: search.adultCount?.toString() || "1", // Default to 1 if undefined
-    childCount: search.childCount?.toString() || "0", // Default to 0 if undefined
+    destination: search.destination || "",
+    checkIn: search.checkIn ? search.checkIn.toISOString() : null,
+    checkOut: search.checkOut ? search.checkOut.toISOString() : null,
+    adultCount: search.adultCount?.toString() || "1",
+    childCount: search.childCount?.toString() || "0",
     page: page.toString(),
     stars: selectedStars,
     types: selectedHotelTypes,
@@ -32,9 +32,13 @@ const Search = () => {
     sortOption,
   };
 
-  const { data } = useQuery(["SearchHotels", searchParams], () =>
-    apiClient.searchHotels(searchParams)
-  );
+  // ✅ Updated useQuery for React Query v5
+  const { data, isError, error, isLoading } = useQuery({
+    queryKey: ["SearchHotels", searchParams], // Corrected query key structure
+    queryFn: () => apiClient.searchHotels(searchParams),
+    keepPreviousData: true, // Keeps previous data while fetching new data
+    onError: (err) => console.error("Error fetching hotels:", err),
+  });
 
   const handleStarsChange = (event) => {
     const starRating = event.target.value;
@@ -47,11 +51,10 @@ const Search = () => {
 
   const handleHotelTypeChange = (event) => {
     const hotelType = event.target.value;
-    setSelectedHotelTypes(
-      (prevHotelTypes) =>
-        event.target.checked
-          ? [...prevHotelTypes, hotelType]
-          : prevHotelTypes.filter((type) => type !== hotelType) // Fixed case-sensitive issue
+    setSelectedHotelTypes((prevHotelTypes) =>
+      event.target.checked
+        ? [...prevHotelTypes, hotelType]
+        : prevHotelTypes.filter((type) => type !== hotelType)
     );
   };
 
@@ -115,8 +118,17 @@ const Search = () => {
           </select>
         </div>
 
-        {/* Ensure data.data exists before mapping */}
-        {Array.isArray(data?.data) && data.data.length > 0 ? (
+        {/* ✅ Loading State */}
+        {isLoading && <p>Loading hotels...</p>}
+
+        {/* ✅ Error State */}
+        {isError && <p className="text-red-500">Error: {error.message}</p>}
+
+        {/* ✅ Results Section */}
+        {!isLoading &&
+        !isError &&
+        Array.isArray(data?.data) &&
+        data.data.length > 0 ? (
           data.data.map((hotel) => (
             <SearchResultsCard key={hotel.id} hotel={hotel} />
           ))
@@ -124,14 +136,14 @@ const Search = () => {
           <p>No hotels found.</p>
         )}
 
-        {/* Pagination */}
-        <div>
+        {/* ✅ Pagination */}
+        {data?.pagination?.pages > 1 && (
           <Pagination
             page={data?.pagination?.page || 1}
             pages={data?.pagination?.pages || 1}
-            onPageChange={(page) => setPage(page)}
+            onPageChange={setPage}
           />
-        </div>
+        )}
       </div>
     </div>
   );

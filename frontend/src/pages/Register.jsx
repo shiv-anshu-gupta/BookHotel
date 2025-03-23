@@ -16,14 +16,19 @@ const Register = () => {
     formState: { errors },
   } = useForm();
 
-  const mutation = useMutation(apiClient.register, {
+  // ✅ Updated useMutation for React Query v5
+  const mutation = useMutation({
+    mutationFn: apiClient.register,
     onSuccess: async () => {
       showToast({ message: "Registration Success!", type: "SUCCESS" });
-      await queryClient.invalidateQueries("validateToken");
+      await queryClient.invalidateQueries({ queryKey: ["validateToken"] });
       navigate("/");
     },
     onError: (error) => {
-      showToast({ message: error.message, type: "SUCCESS" });
+      showToast({
+        message: error?.response?.data?.message || "Registration failed!",
+        type: "ERROR",
+      });
     },
   });
 
@@ -33,7 +38,8 @@ const Register = () => {
 
   return (
     <form className="flex flex-col gap-5" onSubmit={onSubmit}>
-      <h2 className="">Create an Account</h2>
+      <h2 className="text-2xl font-bold">Create an Account</h2>
+
       <div className="flex flex-col md:flex-row gap-5">
         <label className="text-gray-700 text-sm font-bold flex-1">
           First Name
@@ -45,6 +51,7 @@ const Register = () => {
             <span className="text-red-500">{errors.firstName.message}</span>
           )}
         </label>
+
         <label className="text-gray-700 text-sm font-bold flex-1">
           Last Name
           <input
@@ -56,6 +63,7 @@ const Register = () => {
           )}
         </label>
       </div>
+
       <label className="text-gray-700 text-sm font-bold flex-1">
         Email
         <input
@@ -67,6 +75,7 @@ const Register = () => {
           <span className="text-red-500">{errors.email.message}</span>
         )}
       </label>
+
       <label className="text-gray-700 text-sm font-bold flex-1">
         Password
         <input
@@ -84,6 +93,7 @@ const Register = () => {
           <span className="text-red-500">{errors.password.message}</span>
         )}
       </label>
+
       <label className="text-gray-700 text-sm font-bold flex-1">
         Confirm Password
         <input
@@ -91,11 +101,8 @@ const Register = () => {
           className="border rounded w-full py-1 px-2 font-normal"
           {...register("confirmPassword", {
             validate: (val) => {
-              if (val === "") {
-                return "This field is required";
-              } else if (watch("password") !== val) {
-                return "Passwords do not match";
-              }
+              if (val === "") return "This field is required";
+              if (watch("password") !== val) return "Passwords do not match";
             },
           })}
         />
@@ -103,12 +110,13 @@ const Register = () => {
           <span className="text-red-500">{errors.confirmPassword.message}</span>
         )}
       </label>
+
       <span>
         <button
           type="submit"
           className="bg-blue-600 text-white p-2 font-bold hover:bg-blue-500 text-xl"
         >
-          Create Account
+          {mutation.isPending ? "Creating..." : "Create Account"}
         </button>
       </span>
     </form>
