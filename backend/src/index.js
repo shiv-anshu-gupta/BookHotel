@@ -23,7 +23,10 @@ const app = express();
 // ✅ Move CORS to the top
 app.use(
   cors({
-    origin: "https://shivanshurecidency.onrender.com", // Allow frontend domain
+    origin: [
+      "https://shivanshurecidency.onrender.com",
+      "http://localhost:5173",
+    ], // Allow both production & local frontend
     credentials: true, // Allow sending cookies
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   })
