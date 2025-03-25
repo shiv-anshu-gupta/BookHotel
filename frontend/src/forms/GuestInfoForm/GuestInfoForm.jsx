@@ -4,6 +4,7 @@ import { useState } from "react";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSearchContext } from "../../context/SearchContext";
+import { useAppContext } from "../../context/AppContext";
 const GuestInfoForm = ({ hotelId, pricePerNight }) => {
   const navigate = useNavigate();
   const location = useLocation();
