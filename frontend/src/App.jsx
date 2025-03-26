@@ -13,6 +13,7 @@ import MyHotels from "./pages/MyHotels";
 import EditHotel from "./pages/EditHotel";
 import Search from "./pages/Search";
 import Detail from "./pages/Detail";
+import Home from "./pages/Home";
 const App = () => {
   const { isLoggedIn } = useAppContext();
   return (
@@ -22,7 +23,7 @@ const App = () => {
           path="/"
           element={
             <Layout>
-              <p>Home Page</p>
+              <Home />
             </Layout>
           }
         />
