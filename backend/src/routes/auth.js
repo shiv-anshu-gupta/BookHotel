@@ -45,8 +45,9 @@ router.post(
 
       // Set token as HTTP-only cookie
       res.cookie("auth_token", token, {
-        httpOnly: true,
-        secure: process.env.Node_ENV === "production",
+        httpOnly: true, // Protects against XSS attacks
+        secure: true, // Ensures the cookie is only sent over HTTPS
+        sameSite: "None", // Needed for cross-origin requests (Render backend + different frontend domain)
         maxAge: 86400000, // 1 day
       });
 
