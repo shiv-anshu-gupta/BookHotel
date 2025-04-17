@@ -20,14 +20,36 @@ v2.config({
 
 const app = express();
 
-// ✅ Move CORS to the top
+// ✅ Manual fallback CORS headers (set for every request)
+app.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://shivanshurecidency.onrender.com"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  next();
+});
+
+// ✅ Express CORS middleware
 app.use(
   cors({
-    origin: [
-      "https://shivanshurecidency.onrender.com", // Frontend URL
-    ],
-    credentials: true, // Allows cookies to be sent with the request
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Supported HTTP methods
+    origin: "https://shivanshurecidency.onrender.com", // Frontend URL
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  })
+);
+
+// ✅ Preflight support
+app.options(
+  "*",
+  cors({
+    origin: "https://shivanshurecidency.onrender.com",
+    credentials: true,
   })
 );
 
@@ -36,10 +58,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Test Route
-
+// ✅ Test Route
 app.get("/api/test", (req, res) => {
-  res.send("Hello World!");
+  res.json({ message: "CORS works!", cookies: req.cookies });
 });
 
 // Routes
@@ -48,13 +69,27 @@ app.use("/api/users", userRoutes);
 app.use("/api/my-hotels", myHotelRoutes);
 app.use("/api/hotels", hotelRoutes);
 
+// ✅ Global error handler to always send CORS headers
+app.use((err, req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://shivanshurecidency.onrender.com"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
 // MongoDB Connection
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((error) => console.error("Error connecting to MongoDB:", error));
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((error) => console.error("❌ Error connecting to MongoDB:", error));
 
+// Start Server
 const PORT = process.env.PORT || 7000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
 });
