@@ -24,11 +24,10 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "https://shivanshurecidency.onrender.com",
-      "http://localhost:5173",
-    ], // Allow both production & local frontend
-    credentials: true, // Allow sending cookies
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+      "https://shivanshurecidency.onrender.com", // Frontend URL
+    ],
+    credentials: true, // Allows cookies to be sent with the request
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Supported HTTP methods
   })
 );
 
@@ -38,6 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Test Route
+
 app.get("/api/test", (req, res) => {
   res.send("Hello World!");
 });

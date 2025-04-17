@@ -45,9 +45,9 @@ router.post(
 
       // Set token as HTTP-only cookie
       res.cookie("auth_token", token, {
-        httpOnly: true, // Protects against XSS attacks
-        secure: true, // Ensures the cookie is only sent over HTTPS
-        sameSite: "None", // Needed for cross-origin requests (Render backend + different frontend domain)
+        httpOnly: true, // Protects against XSS attacks (client can't access cookies directly)
+        secure: true, // Ensure the cookie is sent only over HTTPS
+        sameSite: "None", // Required for cross-origin requests
         maxAge: 86400000, // 1 day
       });
 
@@ -65,8 +65,11 @@ router.get("/validate-token", verifyToken, (req, res) => {
 
 router.post("/logout", (req, res) => {
   res.cookie("auth_token", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
     expires: new Date(0),
   });
-  res.send();
+  res.status(200).json({ message: "Logged out" });
 });
 module.exports = router;
