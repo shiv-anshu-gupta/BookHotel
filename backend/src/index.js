@@ -20,40 +20,29 @@ v2.config({
 
 const app = express();
 
-// ✅ Manual fallback CORS headers (set for every request)
-app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://shivanshurecidency.onrender.com"
-  );
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  next();
-});
+// ✅ Setup allowed origins
+const allowedOrigins = [
+  "https://shivanshurecidency.onrender.com",
+  "http://localhost:5173",
+];
 
-// ✅ Express CORS middleware
+// ✅ CORS middleware
 app.use(
   cors({
-    origin: "https://shivanshurecidency.onrender.com", // Frontend URL
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   })
 );
 
-// ✅ Preflight support
-app.options(
-  "*",
-  cors({
-    origin: "https://shivanshurecidency.onrender.com",
-    credentials: true,
-  })
-);
-
-// Middlewares
+// ✅ Built-in Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -63,32 +52,33 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "CORS works!", cookies: req.cookies });
 });
 
-// Routes
+// ✅ Main Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/my-hotels", myHotelRoutes);
 app.use("/api/hotels", hotelRoutes);
 
-// ✅ Global error handler to always send CORS headers
+// ✅ Global Error Handler (with dynamic CORS header)
 app.use((err, req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://shivanshurecidency.onrender.com"
-  );
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
   res.header("Access-Control-Allow-Credentials", "true");
+
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal Server Error",
   });
 });
 
-// MongoDB Connection
+// ✅ MongoDB Connection
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING)
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch((error) => console.error("❌ Error connecting to MongoDB:", error));
 
-// Start Server
+// ✅ Start Server
 const PORT = process.env.PORT || 7000;
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);

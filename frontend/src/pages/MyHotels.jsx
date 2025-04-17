@@ -5,17 +5,20 @@ import { BsBuilding, BsMap } from "react-icons/bs";
 import { BiHotel, BiStar } from "react-icons/bi";
 
 const MyHotels = () => {
-  // ✅ Corrected useQuery for React Query v5
-  const { data: hotelData, isError } = useQuery({
-    queryKey: ["fetchMyHotels"], // ✅ Using an array for caching
+  const {
+    data: hotelData,
+    isError,
+    isLoading,
+  } = useQuery({
+    queryKey: ["fetchMyHotels"],
     queryFn: apiClient.fetchMyHotels,
     onError: (error) => {
       console.error("Error fetching hotels:", error);
     },
   });
 
-  if (isError || !hotelData || hotelData.length === 0) {
-    return <span>No Hotels found</span>;
+  if (isLoading) {
+    return <span>Loading...</span>;
   }
 
   return (
@@ -30,45 +33,49 @@ const MyHotels = () => {
         </Link>
       </span>
 
-      <div className="grid grid-cols-1 gap-8">
-        {hotelData.map((hotel) => (
-          <div
-            key={hotel._id} // ✅ Added missing key prop
-            className="flex flex-col justify-between border border-slate-300 rounded-lg p-8 gap-5"
-          >
-            <h2 className="text-2xl font-bold">{hotel.name}</h2>
-            <div className="whitespace-pre-line">{hotel.description}</div>
+      {!hotelData || hotelData.length === 0 ? (
+        <div className="text-lg">You have not added any hotels yet.</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-8">
+          {hotelData.map((hotel) => (
+            <div
+              key={hotel._id}
+              className="flex flex-col justify-between border border-slate-300 rounded-lg p-8 gap-5"
+            >
+              <h2 className="text-2xl font-bold">{hotel.name}</h2>
+              <div className="whitespace-pre-line">{hotel.description}</div>
 
-            <div className="grid grid-cols-4 gap-2">
-              <div className="border border-slate-300 rounded-sm p-3 flex items-center">
-                <BsMap className="mr-1" />
-                {hotel.city}, {hotel.country}
+              <div className="grid grid-cols-4 gap-2">
+                <div className="border border-slate-300 rounded-sm p-3 flex items-center">
+                  <BsMap className="mr-1" />
+                  {hotel.city}, {hotel.country}
+                </div>
+                <div className="border border-slate-300 rounded-sm p-3 flex items-center">
+                  <BsBuilding className="mr-1" />
+                  {hotel.type}
+                </div>
+                <div className="border border-slate-300 rounded-sm p-3 flex items-center">
+                  <BiHotel className="mr-1" />
+                  {hotel.adultCount} adults, {hotel.childCount} children
+                </div>
+                <div className="border border-slate-300 rounded-sm p-3 flex items-center">
+                  <BiStar className="mr-1" />
+                  {hotel.starRating} Star Rating
+                </div>
               </div>
-              <div className="border border-slate-300 rounded-sm p-3 flex items-center">
-                <BsBuilding className="mr-1" />
-                {hotel.type}
-              </div>
-              <div className="border border-slate-300 rounded-sm p-3 flex items-center">
-                <BiHotel className="mr-1" />
-                {hotel.adultCount} adults, {hotel.childCount} children
-              </div>
-              <div className="border border-slate-300 rounded-sm p-3 flex items-center">
-                <BiStar className="mr-1" />
-                {hotel.starRating} Star Rating
-              </div>
+
+              <span className="flex justify-end">
+                <Link
+                  to={`/edit-hotel/${hotel._id}`}
+                  className="flex bg-blue-600 text-white text-xl font-bold p-2 hover:bg-blue-500"
+                >
+                  View Details
+                </Link>
+              </span>
             </div>
-
-            <span className="flex justify-end">
-              <Link
-                to={`/edit-hotel/${hotel._id}`}
-                className="flex bg-blue-600 text-white text-xl font-bold p-2 hover:bg-blue-500"
-              >
-                View Details
-              </Link>
-            </span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
